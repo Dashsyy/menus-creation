@@ -65,6 +65,20 @@ body.hide-cursor { cursor: none; }
 .tv-section h2 { break-after: avoid; }
 /* inline-block keeps each item in one column (break-inside alone isn't reliable in multicol) */
 .tv-item { display: inline-block; width: 100%; break-inside: avoid; margin-bottom: 0.55em; }
+.tv-item.has-photo {
+  display: inline-grid;
+  grid-template-columns: 3.3em 1fr;
+  gap: 0.6em;
+  align-items: center;
+}
+.tv-photo {
+  width: 3.3em;
+  height: 3.3em;
+  object-fit: cover;
+  border-radius: 0.45em;
+  box-shadow: 0 0.1em 0.3em rgba(0, 0, 0, 0.2);
+}
+.tv-text { min-width: 0; }
 .tv-line { display: flex; align-items: baseline; gap: 0.4em; }
 .tv-item-name { font-weight: 700; }
 .tv-item.highlight .tv-item-name { color: var(--accent); }
@@ -101,6 +115,14 @@ body.hide-cursor { cursor: none; }
   font-family: var(--font);
 }
 .tv-promo[hidden] { display: none; }
+.tv-promo { align-items: center; }
+.tv-promo-photo {
+  height: 8vmin;
+  width: 8vmin;
+  object-fit: cover;
+  border-radius: 1vmin;
+  align-self: center;
+}
 .tv-promo strong { font-size: 3.4vmin; text-transform: uppercase; letter-spacing: 0.06em; }
 .tv-promo span { font-size: 3vmin; }
 

@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="theme-color" content="#ffffff">
+  <title>Menu</title>
+  <link rel="stylesheet" href="menu.css">
+</head>
+<body>
+  <div id="app" class="app">
+    <header class="hero">
+      <img class="hero-logo" alt="" hidden>
+      <h1 class="hero-name"></h1>
+      <p class="hero-tagline"></p>
+    </header>
+
+    <section class="promos" aria-label="Promotions" hidden></section>
+
+    <nav class="tabs" aria-label="Menu sections">
+      <div class="tab-row" id="tab-row"></div>
+      <div class="filter-row" id="filter-row" hidden></div>
+    </nav>
+
+    <main id="sections"></main>
+
+    <footer class="foot">
+      <p class="foot-note"></p>
+      <p class="foot-contact"></p>
+    </footer>
+  </div>
+
+  <dialog id="detail" class="detail">
+    <button type="button" class="detail-close" aria-label="Close">✕</button>
+    <div class="detail-body"></div>
+  </dialog>
+
+  <p id="error" class="error" hidden></p>
+
+  <script src="shared.js"></script>
+  <script src="templates.js"></script>
+  <script src="menu.js"></script>
+</body>
+</html>

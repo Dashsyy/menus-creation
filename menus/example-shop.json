@@ -16,7 +16,8 @@
   "promos": [
     {
       "title": "Family Combo",
-      "detail": "2 mains + 2 kids meals + dessert to share for $49"
+      "detail": "2 mains + 2 kids meals + dessert to share for $49",
+      "image": "images/samples/lasagna.svg"
     }
   ],
   "sections": [
@@ -27,7 +28,8 @@
           "name": "Garlic Bread",
           "desc": "Wood-fired, herb butter",
           "price": "6",
-          "tags": "veg"
+          "tags": "veg",
+          "image": "images/samples/garlic-bread.svg"
         },
         {
           "name": "Calamari",
@@ -44,19 +46,22 @@
           "name": "Lasagna",
           "desc": "Beef ragù, béchamel, parmesan",
           "price": "18",
-          "tags": "popular"
+          "tags": "popular",
+          "image": "images/samples/lasagna.svg"
         },
         {
           "name": "Penne Arrabbiata",
           "desc": "Tomato, chili, basil",
           "price": "15",
-          "tags": "veg, spicy"
+          "tags": "veg, spicy",
+          "image": "images/samples/pasta.svg"
         },
         {
           "name": "Grilled Salmon",
           "desc": "Seasonal greens, lemon butter",
           "price": "24",
-          "tags": "gf"
+          "tags": "gf",
+          "image": "images/samples/salmon.svg"
         }
       ]
     },
@@ -67,7 +72,8 @@
           "name": "Tiramisu",
           "desc": "House-made",
           "price": "8",
-          "tags": ""
+          "tags": "",
+          "image": "images/samples/tiramisu.svg"
         }
       ]
     }

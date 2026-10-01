@@ -1,5 +1,5 @@
 (function () {
-  const STORAGE_KEY = "menu-maker:v1";
+  const { STORAGE_KEY } = window.MenuCore;
   const menuEl = document.getElementById("menu");
   const promoList = document.getElementById("promo-list");
   const sectionList = document.getElementById("section-list");
@@ -19,11 +19,18 @@
     }
   }
 
+  let warnedFull = false;
   function save() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch (e) {
-      // Storage unavailable (private mode); the editor still works for this session.
+      // Storage blocked (private mode) or full (too many uploaded photos). The editor keeps
+      // working for this session; warn once so nobody loses work by closing the tab.
+      if (!warnedFull && e.name === "QuotaExceededError") {
+        warnedFull = true;
+        alert("This browser can't store any more photos, so changes won't be kept after you close the tab. " +
+          "Click \"Download menu file\" to keep your work, and use photo links (or images/ files) instead of uploads.");
+      }
     }
   }
 
@@ -59,6 +66,7 @@
     setPageSize(design.paper);
 
     const activePromos = (promos || []).filter((p) => p.title.trim());
+    const photos = window.MenuCore.showPhotos(state);
 
     menuEl.innerHTML = `
       <header class="menu-head">
@@ -70,9 +78,12 @@
       ${activePromos.length ? `
         <div class="promos">
           ${activePromos.map((p) => `
-            <div class="promo">
-              <strong>${esc(p.title)}</strong>
-              ${p.detail ? `<span>${esc(p.detail)}</span>` : ""}
+            <div class="promo${photos && p.image ? " has-photo" : ""}">
+              ${photos && p.image ? `<img class="promo-photo" src="${esc(p.image)}" alt="">` : ""}
+              <div>
+                <strong>${esc(p.title)}</strong>
+                ${p.detail ? `<span>${esc(p.detail)}</span>` : ""}
+              </div>
             </div>`).join("")}
         </div>` : ""}
 
@@ -85,7 +96,8 @@
                 const tags = parseTags(it.tags);
                 const highlight = tags.includes("promo") || tags.includes("popular");
                 return `
-                <li class="item${highlight ? " highlight" : ""}">
+                <li class="item${highlight ? " highlight" : ""}${photos && it.image ? " has-photo" : ""}">
+                  ${photos && it.image ? `<img class="item-photo" src="${esc(it.image)}" alt="">` : ""}
                   <div class="item-line">
                     <span class="item-name">${esc(it.name)}</span>
                     <span class="dots"></span>
@@ -112,11 +124,52 @@
     document.querySelectorAll("[data-bind]").forEach((el) => {
       const path = el.dataset.bind;
       el.value = getPath(path) ?? "";
+      if (el.tagName === "SELECT" && el.selectedIndex < 0) el.selectedIndex = 0; // older menus lack newer settings
       el.oninput = () => {
         setPath(path, el.value);
         update();
       };
     });
+  }
+
+  // Photo field: paste a web address / images/ path, or upload a photo from this device.
+  function imagePicker(obj, key, label) {
+    const el = document.createElement("div");
+    el.className = "photo-pick";
+    const draw = () => {
+      const value = obj[key] || "";
+      const uploaded = value.startsWith("data:");
+      el.innerHTML = `
+        <div class="thumb">${value ? `<img src="${esc(value)}" alt="">` : "<span>No photo</span>"}</div>
+        <div class="photo-fields">
+          <input placeholder="${esc(label)}: paste link or images/… path"
+            value="${uploaded ? "" : esc(value)}">
+          <div class="row">
+            <button type="button" class="link" data-act="upload">${value ? "Upload new" : "Upload photo"}</button>
+            ${value ? '<button type="button" class="link danger" data-act="clear">Remove</button>' : ""}
+            ${uploaded ? '<span class="hint">Uploaded ✓</span>' : ""}
+          </div>
+          <input type="file" accept="image/*" hidden>
+        </div>`;
+      const text = el.querySelector("input:not([type=file])");
+      text.onchange = () => { obj[key] = text.value.trim(); update(); draw(); };
+      const file = el.querySelector("input[type=file]");
+      el.querySelector('[data-act="upload"]').onclick = () => file.click();
+      file.onchange = async () => {
+        if (!file.files[0]) return;
+        try {
+          obj[key] = await window.MenuCore.resizeImage(file.files[0]);
+          update();
+          draw();
+        } catch (err) {
+          alert(err.message);
+        }
+      };
+      const clear = el.querySelector('[data-act="clear"]');
+      if (clear) clear.onclick = () => { delete obj[key]; update(); draw(); };
+    };
+    draw();
+    return el;
   }
 
   function renderPromoEditor() {
@@ -135,6 +188,7 @@
         state.promos.splice(i, 1);
         refreshAll();
       };
+      row.insertBefore(imagePicker(p, "image", "Promo photo"), row.querySelector("button"));
       promoList.appendChild(row);
     });
   }
@@ -187,6 +241,7 @@
         row.querySelectorAll("input").forEach((inp) => {
           inp.oninput = () => { it[inp.dataset.k] = inp.value; update(); };
         });
+        row.appendChild(imagePicker(it, "image", "Photo"));
         row.querySelector('[data-act="up"]').onclick = () => move(s.items, ii, -1);
         row.querySelector('[data-act="down"]').onclick = () => move(s.items, ii, 1);
         row.querySelector('[data-act="del"]').onclick = () => {
@@ -214,6 +269,9 @@
 
   function refreshAll() {
     bindSimpleFields();
+    const logo = document.getElementById("logo-picker");
+    logo.replaceChildren(imagePicker(state.business, "logo", "Logo"));
+    renderShare();
     renderPromoEditor();
     renderSectionEditor();
     update();
@@ -242,23 +300,73 @@
 
   document.getElementById("btn-print").onclick = () => window.print();
 
-  // TV links carry the whole menu in the URL hash, so they work on any static host
-  // without a server. For short, editable links use tv.html?m=<file> instead (see README).
-  function tvLink() {
-    return new URL("tv.html#m=" + window.MenuCore.encodeMenu(state), location.href).href;
+  // ---------- Share & display ----------
+  //
+  // Permanent links (?m=<name>) read menus/<name>.json from the site, so they stay short and
+  // pick up changes. Quick links (#m=...) carry the whole menu inside the link and need no upload.
+
+  function slugify(text) {
+    return String(text || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
   }
 
-  document.getElementById("btn-tv").onclick = () => window.open(tvLink(), "_blank");
+  function menuSlug() {
+    return slugify(state.slug) || slugify(state.business.name) || "menu";
+  }
 
-  document.getElementById("btn-tv-link").onclick = async (e) => {
-    const link = tvLink();
+  function permanentLink(page) {
+    return new URL(`${page}?m=${menuSlug()}`, location.href).href;
+  }
+
+  function quickLink(page) {
+    const [menu, dropped] = window.MenuCore.withoutUploadedImages(state);
+    return { link: new URL(`${page}#m=${window.MenuCore.encodeMenu(menu)}`, location.href).href, dropped };
+  }
+
+  const UPLOAD_NOTE = "Uploaded photos aren't included in quick links (they would make the link too long). " +
+    "Use the permanent link to show them.";
+
+  function renderShare() {
+    const slugInput = document.getElementById("share-slug");
+    slugInput.value = state.slug || "";
+    slugInput.placeholder = slugify(state.business.name) || "menu";
+    slugInput.oninput = () => { state.slug = slugInput.value; save(); updateShareLinks(); };
+    updateShareLinks();
+  }
+
+  function updateShareLinks() {
+    document.getElementById("share-file").textContent = `menus/${menuSlug()}.json`;
+    document.getElementById("link-tv").textContent = permanentLink("tv.html");
+    document.getElementById("link-tablet").textContent = permanentLink("menu.html");
+  }
+
+  document.querySelectorAll("[data-copy-permanent]").forEach((btn) => {
+    btn.onclick = () => copy(btn, permanentLink(btn.dataset.copyPermanent));
+  });
+
+  document.querySelectorAll("[data-open-quick]").forEach((btn) => {
+    btn.onclick = () => {
+      const { link, dropped } = quickLink(btn.dataset.openQuick);
+      if (dropped) alert(UPLOAD_NOTE);
+      window.open(link, "_blank");
+    };
+  });
+
+  document.querySelectorAll("[data-copy-quick]").forEach((btn) => {
+    btn.onclick = () => {
+      const { link, dropped } = quickLink(btn.dataset.copyQuick);
+      if (dropped) alert(UPLOAD_NOTE);
+      copy(btn, link);
+    };
+  });
+
+  async function copy(btn, text) {
     try {
-      await navigator.clipboard.writeText(link);
-      flash(e.target, "Copied!");
+      await navigator.clipboard.writeText(text);
+      flash(btn, "Copied!");
     } catch (err) {
-      prompt("Copy this TV link:", link);
+      prompt("Copy this link:", text);
     }
-  };
+  }
 
   function flash(btn, text) {
     const original = btn.textContent;
@@ -266,15 +374,18 @@
     setTimeout(() => { btn.textContent = original; }, 1500);
   }
 
-  document.getElementById("btn-export").onclick = () => {
+  function downloadMenu() {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
     const a = document.createElement("a");
-    const slug = (state.business.name || "menu").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     a.href = URL.createObjectURL(blob);
-    a.download = `${slug || "menu"}.json`;
+    a.download = `${menuSlug()}.json`;
     a.click();
     URL.revokeObjectURL(a.href);
-  };
+  }
+
+  document.getElementById("btn-download-file").onclick = downloadMenu;
+
+  document.getElementById("btn-export").onclick = downloadMenu;
 
   const fileInput = document.getElementById("file-import");
   document.getElementById("btn-import").onclick = () => fileInput.click();

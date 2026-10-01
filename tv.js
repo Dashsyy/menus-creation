@@ -8,7 +8,7 @@
 //
 // Optional: &page=<seconds> how long each page shows when the menu needs more than one (default 15).
 (function () {
-  const { esc, parseTags, formatPrice, decodeMenu } = window.MenuCore;
+  const { esc, parseTags, formatPrice, loadMenu, showPhotos } = window.MenuCore;
   const params = new URLSearchParams(location.search);
   const PAGE_SECONDS = Math.max(5, Number(params.get("page")) || 15);
   const PROMO_SECONDS = 7;
@@ -26,28 +26,6 @@
   let promoIndex = 0;
   let pageTimer = null;
   let promoTimer = null;
-
-  async function loadMenu() {
-    const hash = new URLSearchParams(location.hash.slice(1));
-    if (hash.get("m")) return decodeMenu(hash.get("m"));
-
-    const name = params.get("m");
-    if (name) {
-      const safe = name.replace(/[^a-zA-Z0-9_-]/g, "");
-      try {
-        const res = await fetch(`menus/${safe}.json`, { cache: "no-store" });
-        if (res.ok) return await res.json();
-      } catch (e) {
-        // Fall through to the built-in starters (e.g. when opened from file://).
-      }
-      if (window.STARTERS[safe]) return window.STARTERS[safe];
-      throw new Error(`No menu called "${safe}" was found.`);
-    }
-
-    const saved = localStorage.getItem("menu-maker:v1");
-    if (saved) return JSON.parse(saved);
-    return window.STARTERS.cafe;
-  }
 
   function applyMenu(next) {
     const json = JSON.stringify(next);
@@ -75,6 +53,7 @@
   // ---------- Menu pages ----------
 
   function sectionHtml(s) {
+    const photos = showPhotos(menu);
     return `
       <section class="tv-section">
         <h2>${esc(s.title)}</h2>
@@ -82,7 +61,9 @@
           const tags = parseTags(it.tags);
           const highlight = tags.includes("promo") || tags.includes("popular");
           return `
-          <div class="tv-item${highlight ? " highlight" : ""}">
+          <div class="tv-item${highlight ? " highlight" : ""}${photos && it.image ? " has-photo" : ""}">
+            ${photos && it.image ? `<img class="tv-photo" src="${esc(it.image)}" alt="">` : ""}
+            <div class="tv-text">
             <div class="tv-line">
               <span class="tv-item-name">${esc(it.name)}</span>
               <span class="tv-dots"></span>
@@ -90,6 +71,7 @@
             </div>
             ${it.desc || tags.length ? `<p class="tv-desc">${esc(it.desc)}${tags.map((t) =>
               ` <span class="tv-tag tag-${esc(t)}">${esc(window.TAG_LABELS[t] || t)}</span>`).join("")}</p>` : ""}
+            </div>
           </div>`;
         }).join("")}
       </section>`;
@@ -121,7 +103,8 @@
 
   // Split sections into `count` groups with roughly equal item counts, keeping order.
   function split(sections, count) {
-    const weight = (s) => s.items.length + 1.5;
+    // Rough height of a section in lines; items with a photo are taller.
+    const weight = (s) => 1.5 + s.items.reduce((n, it) => n + (it.image && showPhotos(menu) ? 1.6 : 1), 0);
     const total = sections.reduce((n, s) => n + weight(s), 0);
     const groups = [];
     let current = [];
@@ -192,7 +175,9 @@
     promoIndex = 0;
     const show = () => {
       const p = promos[promoIndex % promos.length];
-      promoEl.innerHTML = `<strong>${esc(p.title)}</strong>${p.detail ? `<span>${esc(p.detail)}</span>` : ""}`;
+      promoEl.innerHTML = `
+        ${p.image && showPhotos(menu) ? `<img class="tv-promo-photo" src="${esc(p.image)}" alt="">` : ""}
+        <strong>${esc(p.title)}</strong>${p.detail ? `<span>${esc(p.detail)}</span>` : ""}`;
       promoEl.classList.remove("fade-in");
       void promoEl.offsetWidth;
       promoEl.classList.add("fade-in");

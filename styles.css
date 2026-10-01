@@ -113,6 +113,40 @@ button.danger, button.link.danger { color: var(--ui-danger); }
   border-radius: 6px;
 }
 
+.row.wrap { flex-wrap: wrap; }
+code { font-size: 0.75rem; word-break: break-all; }
+
+.photo-pick { display: flex; gap: 8px; align-items: flex-start; }
+.photo-pick .thumb {
+  flex: 0 0 56px;
+  height: 56px;
+  border-radius: 6px;
+  background: var(--ui-panel);
+  border: 1px dashed var(--ui-border);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  font-size: 0.65rem;
+  color: var(--ui-muted);
+  text-align: center;
+}
+.photo-pick .thumb img { width: 100%; height: 100%; object-fit: cover; }
+.photo-pick .photo-fields { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.photo-pick .hint { margin: 0; }
+#logo-picker { margin-bottom: 8px; }
+
+.share-link {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+  align-items: center;
+  margin: 8px 0;
+  padding: 6px 8px;
+  background: var(--ui-bg);
+  border-radius: 6px;
+}
+.share-link span { grid-column: 1 / -1; font-size: 0.8rem; color: var(--ui-muted); }
+
 .preview-wrap { overflow: auto; display: flex; justify-content: center; }
 
 /* ---------- The menu itself ---------- */
@@ -173,6 +207,21 @@ button.danger, button.link.danger { color: var(--ui-danger); }
 }
 .tag-promo, .tag-new { background: var(--accent); border-color: var(--accent); color: #fff; opacity: 1; }
 .item.highlight .item-name { color: var(--accent); }
+
+/* Photos */
+.item.has-photo { display: flow-root; }
+.item-photo {
+  float: right;
+  width: 22mm;
+  height: 22mm;
+  object-fit: cover;
+  border-radius: 3mm;
+  margin: 0 0 1mm 3mm;
+}
+.promo.has-photo { display: flex; align-items: center; gap: 10px; text-align: left; }
+.promo.has-photo > div { flex: 1; }
+.promo-photo { width: 20mm; height: 20mm; object-fit: cover; border-radius: 50%; flex: none; }
+.tpl-minimal .item-photo { float: none; display: block; margin: 0 auto 2mm; width: 30mm; height: 22mm; }
 
 .menu-foot { text-align: center; font-size: 0.85rem; margin-top: 6mm; opacity: 0.8; }
 .menu-foot p { margin: 2px 0; }
