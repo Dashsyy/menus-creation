@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Menu Maker</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar no-print">
+    <h1>Menu Maker</h1>
+    <div class="actions">
+      <select id="starter" aria-label="Load a starter menu">
+        <option value="">Load starter…</option>
+        <option value="cafe">Small café</option>
+        <option value="restaurant">Family restaurant</option>
+        <option value="chain">Multi-location chain</option>
+      </select>
+      <button id="btn-import" type="button">Import JSON</button>
+      <input id="file-import" type="file" accept="application/json" hidden>
+      <button id="btn-export" type="button">Export JSON</button>
+      <button id="btn-print" type="button" class="primary">Print / Save PDF</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <aside class="editor no-print">
+      <details open>
+        <summary>Business</summary>
+        <label>Name <input data-bind="business.name"></label>
+        <label>Tagline <input data-bind="business.tagline"></label>
+        <label>Logo URL <input data-bind="business.logo" placeholder="https://…"></label>
+        <label>Address / locations <input data-bind="business.address"></label>
+        <label>Phone / website <input data-bind="business.contact"></label>
+      </details>
+
+      <details open>
+        <summary>Design</summary>
+        <label>Template
+          <select data-bind="design.template">
+            <option value="classic">Classic (restaurant)</option>
+            <option value="modern">Modern (brand / chain)</option>
+            <option value="chalk">Chalkboard (café, bar)</option>
+            <option value="minimal">Minimal (fine dining)</option>
+          </select>
+        </label>
+        <label>Brand color <input type="color" data-bind="design.accent"></label>
+        <label>Currency symbol <input data-bind="design.currency" maxlength="4"></label>
+        <label>Columns
+          <select data-bind="design.columns">
+            <option value="1">1</option>
+            <option value="2">2</option>
+          </select>
+        </label>
+        <label>Paper size
+          <select data-bind="design.paper">
+            <option value="a4">A4</option>
+            <option value="letter">US Letter</option>
+          </select>
+        </label>
+      </details>
+
+      <details open>
+        <summary>Promotions</summary>
+        <p class="hint">Shown as a banner at the top of the menu. Leave the title empty to hide.</p>
+        <div id="promo-list"></div>
+        <button type="button" id="btn-add-promo">+ Add promotion</button>
+      </details>
+
+      <details open>
+        <summary>Menu sections</summary>
+        <div id="section-list"></div>
+        <button type="button" id="btn-add-section">+ Add section</button>
+      </details>
+
+      <details>
+        <summary>Footer</summary>
+        <label>Note <textarea data-bind="footer" rows="2"></textarea></label>
+      </details>
+    </aside>
+
+    <section class="preview-wrap">
+      <article id="menu" class="menu"></article>
+    </section>
+  </main>
+
+  <script src="templates.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
