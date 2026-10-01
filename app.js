@@ -38,23 +38,10 @@
     target[last] = value;
   }
 
-  function esc(str) {
-    return String(str ?? "").replace(/[&<>"']/g, (c) => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
-    }[c]));
-  }
-
-  function parseTags(tags) {
-    return String(tags || "")
-      .split(",")
-      .map((t) => t.trim().toLowerCase())
-      .filter(Boolean);
-  }
+  const { esc, parseTags } = window.MenuCore;
 
   function formatPrice(price) {
-    if (price === "" || price == null) return "";
-    const cur = state.design.currency || "";
-    return cur + price;
+    return window.MenuCore.formatPrice(state, price);
   }
 
   // ---------- Preview ----------
@@ -254,6 +241,30 @@
   };
 
   document.getElementById("btn-print").onclick = () => window.print();
+
+  // TV links carry the whole menu in the URL hash, so they work on any static host
+  // without a server. For short, editable links use tv.html?m=<file> instead (see README).
+  function tvLink() {
+    return new URL("tv.html#m=" + window.MenuCore.encodeMenu(state), location.href).href;
+  }
+
+  document.getElementById("btn-tv").onclick = () => window.open(tvLink(), "_blank");
+
+  document.getElementById("btn-tv-link").onclick = async (e) => {
+    const link = tvLink();
+    try {
+      await navigator.clipboard.writeText(link);
+      flash(e.target, "Copied!");
+    } catch (err) {
+      prompt("Copy this TV link:", link);
+    }
+  };
+
+  function flash(btn, text) {
+    const original = btn.textContent;
+    btn.textContent = text;
+    setTimeout(() => { btn.textContent = original; }, 1500);
+  }
 
   document.getElementById("btn-export").onclick = () => {
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });

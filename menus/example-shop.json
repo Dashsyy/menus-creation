@@ -1,0 +1,76 @@
+{
+  "business": {
+    "name": "Example Shop",
+    "tagline": "Edit menus/example-shop.json to change this screen",
+    "logo": "",
+    "address": "48 Harbor Road",
+    "contact": "Reservations (555) 987-6543"
+  },
+  "design": {
+    "template": "classic",
+    "accent": "#9b2c2c",
+    "currency": "$",
+    "columns": "1",
+    "paper": "letter"
+  },
+  "promos": [
+    {
+      "title": "Family Combo",
+      "detail": "2 mains + 2 kids meals + dessert to share for $49"
+    }
+  ],
+  "sections": [
+    {
+      "title": "Starters",
+      "items": [
+        {
+          "name": "Garlic Bread",
+          "desc": "Wood-fired, herb butter",
+          "price": "6",
+          "tags": "veg"
+        },
+        {
+          "name": "Calamari",
+          "desc": "Lemon aioli",
+          "price": "11",
+          "tags": ""
+        }
+      ]
+    },
+    {
+      "title": "Mains",
+      "items": [
+        {
+          "name": "Lasagna",
+          "desc": "Beef ragù, béchamel, parmesan",
+          "price": "18",
+          "tags": "popular"
+        },
+        {
+          "name": "Penne Arrabbiata",
+          "desc": "Tomato, chili, basil",
+          "price": "15",
+          "tags": "veg, spicy"
+        },
+        {
+          "name": "Grilled Salmon",
+          "desc": "Seasonal greens, lemon butter",
+          "price": "24",
+          "tags": "gf"
+        }
+      ]
+    },
+    {
+      "title": "Desserts",
+      "items": [
+        {
+          "name": "Tiramisu",
+          "desc": "House-made",
+          "price": "8",
+          "tags": ""
+        }
+      ]
+    }
+  ],
+  "footer": "A 10% service charge applies to tables of 8 or more."
+}
